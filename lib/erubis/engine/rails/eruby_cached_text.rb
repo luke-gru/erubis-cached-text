@@ -25,6 +25,7 @@ module ActionView
 
         def add_text(src, text)
           return if text.empty?
+
           if text == "\n"
             @newline_pending += 1
             return
@@ -45,14 +46,14 @@ module ActionView
               nls = "\n" * @newline_pending
               text = nls << text
             end
-            escaped = escape_text(text)
-            digest = Digest::SHA1.hexdigest(escaped)
+            digest = Digest::SHA1.hexdigest(text)
             key = :"#{digest}"
             unless TEXT_CACHE.has_key?(key)
-              TEXT_CACHE[key] = escaped.freeze
+              TEXT_CACHE[key] = text.freeze
             end
-            src << "@output_buffer.safe_append="
-            src << generate_lookup_text_code(digest) << ";"
+            src << "@output_buffer.safe_append=("
+            src << generate_lookup_text_code(digest) << ");"
+            @newline_pending = 0
           end
         end
 
@@ -111,9 +112,13 @@ module ActionView
           end
 
       end
+
+      class ERB
+        self.erb_implementation = ActionView::Template::Handlers::ErubyCachedText
+      end
+
     end
 
-      ERB.erb_implementation = ErubyCachedText
 
   end
 end

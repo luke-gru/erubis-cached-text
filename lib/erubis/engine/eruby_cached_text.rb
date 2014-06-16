@@ -25,11 +25,10 @@ module Erubis
       end
 
       unless text.empty?
-        escaped = escape_text(text)
-        digest = Digest::SHA1.hexdigest(escaped)
+        digest = Digest::SHA1.hexdigest(text)
         key = :"#{digest}"
         unless TEXT_CACHE.has_key?(key)
-          TEXT_CACHE[key] = escaped.freeze
+          TEXT_CACHE[key] = text.freeze
         end
         src << " #{@bufvar} << " << generate_lookup_text_code(digest) << ";"
       end
